@@ -4,10 +4,6 @@ function Square({ value, onSquareClick }) {
     return <button className="square" onClick={onSquareClick}>{ value }</button>;
 }
 
-function BoardRow() {
-
-}
-
 function Board({ xIsNext, squares, onPlay }) {
   function handleClick(i) {
     if (squares[i] || calculateWinner(squares)) {
@@ -61,38 +57,46 @@ export default function Game() {
   const [currentMove, setCurrentMove] = useState(0);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
+  const [moves, setMoves] = useState(addMoves());
 
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
-    setHistory(nextHistory);
-    setCurrentMove(nextHistory.length - 1);
+  function addMoves() {
+    return history.map((squares, move) => {
+      let description;
+      if ( currentMove === move ) {
+        description = 'You are at move #' + move;
+        return (
+          <li key={move}>
+            {description}
+          </li>
+        );
+      }
+      else if ( move > 0 ) {
+        description = 'Go to move #' + move;
+      } else {
+        description = 'Go to game start';
+      }
+      return (
+        <li key={move}>
+          <button onClick={() => jumpTo(move)}>{description}</button>
+        </li>
+      );
+    })
   }
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
   }
 
-  const moves = history.map((squares, move) => {
-    let description;
-    if ( currentMove === move ) {
-      description = 'You are at move #' + move;
-      return (
-        <li key={move}>
-          {description}
-        </li>
-      );
-    }
-    else if ( move > 0 ) {
-      description = 'Go to move #' + move;
-    } else {
-      description = 'Go to game start';
-    }
-    return (
-      <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
-      </li>
-    );
-  });
+  function changeHistoryOrder() {
+    setMoves(addMoves().reverse());
+  }
+
+  function handlePlay(nextSquares) {
+    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    setHistory(nextHistory);
+    setCurrentMove(nextHistory.length - 1);
+    setMoves(addMoves());
+  }
 
   return (
     <div className="game">
@@ -101,6 +105,7 @@ export default function Game() {
       </div>
       <div className="game-info">
         <ol>{moves}</ol>
+        <button onClick={() => changeHistoryOrder()}>Change history order</button>
       </div>
     </div>
   );
